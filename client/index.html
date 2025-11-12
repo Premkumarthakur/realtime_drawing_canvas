@@ -4,14 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DrawTogether - Real-time Collaborative Drawing</title>
+
+  <!-- Linking external stylesheet for design -->
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+  <!-- =======================
+       JOIN SCREEN (Shown first)
+       ======================= -->
   <div id="join-screen" class="screen active">
     <div class="join-container">
       <h1>DrawTogether</h1>
       <p class="subtitle">Real-time collaborative drawing</p>
+
+      <!-- Form for joining a drawing room -->
       <form id="join-form">
+        <!-- Room Name Input -->
         <div class="input-group">
           <label for="room-name">Room Name</label>
           <input
@@ -22,6 +31,8 @@
             autocomplete="off"
           >
         </div>
+
+        <!-- Username Input -->
         <div class="input-group">
           <label for="username">Your Name</label>
           <input
@@ -32,13 +43,24 @@
             autocomplete="off"
           >
         </div>
+
+        <!-- Button to join the room -->
         <button type="submit" class="btn-primary">Join Room</button>
       </form>
     </div>
   </div>
 
+
+  <!-- =========================
+       MAIN CANVAS SCREEN
+       (Visible after joining a room)
+       ========================= -->
   <div id="canvas-screen" class="screen">
+
+    <!-- === Top Toolbar === -->
     <div class="toolbar">
+
+      <!-- Shows current room info -->
       <div class="toolbar-section">
         <div class="room-info">
           <span class="room-label">Room:</span>
@@ -46,7 +68,11 @@
         </div>
       </div>
 
+
+      <!-- === Drawing Tools Section === -->
       <div class="toolbar-section tools">
+
+        <!-- Brush Tool -->
         <button id="brush-tool" class="tool-btn active" title="Brush">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 19l7-7 3 3-7 7-3-3z"/>
@@ -54,6 +80,8 @@
             <path d="M2 2l7.586 7.586"/>
           </svg>
         </button>
+
+        <!-- Eraser Tool -->
         <button id="eraser-tool" class="tool-btn" title="Eraser">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M20 20H7L3 16L11 8L19 16V20Z"/>
@@ -63,11 +91,13 @@
 
         <div class="divider"></div>
 
+        <!-- Color Picker -->
         <div class="color-picker-wrapper">
           <input type="color" id="color-picker" value="#2563eb" title="Color">
           <div class="color-preview" id="color-preview"></div>
         </div>
 
+        <!-- Brush Size Slider -->
         <div class="slider-wrapper">
           <label for="stroke-width">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -79,25 +109,34 @@
         </div>
       </div>
 
+
+      <!-- === Undo / Redo / Clear / Leave === -->
       <div class="toolbar-section actions">
+        <!-- Undo -->
         <button id="undo-btn" class="action-btn" title="Undo (Ctrl+Z)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 7v6h6"/>
             <path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
           </svg>
         </button>
+
+        <!-- Redo -->
         <button id="redo-btn" class="action-btn" title="Redo (Ctrl+Y)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 7v6h-6"/>
             <path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"/>
           </svg>
         </button>
+
+        <!-- Clear Canvas -->
         <button id="clear-btn" class="action-btn" title="Clear Canvas">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="3 6 5 6 21 6"/>
             <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
           </svg>
         </button>
+
+        <!-- Leave Room -->
         <button id="leave-btn" class="action-btn leave" title="Leave Room">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
@@ -108,19 +147,27 @@
       </div>
     </div>
 
+
+    <!-- === Main App Layout === -->
     <div class="main-content">
+
+      <!-- Sidebar (Shows online users) -->
       <div class="sidebar">
         <h3>Online Users</h3>
         <div id="users-list" class="users-list"></div>
       </div>
 
+      <!-- Canvas Area -->
       <div class="canvas-container">
-        <canvas id="drawing-canvas"></canvas>
-        <div id="cursors-container"></div>
+        <canvas id="drawing-canvas"></canvas>   <!-- Actual drawing area -->
+        <div id="cursors-container"></div>      <!-- Displays other users’ cursors -->
       </div>
     </div>
   </div>
 
+  <!-- =========================
+       Socket.IO and main logic
+       ========================= -->
   <script src="https://realtime-drawing-canvas-backend.onrender.com/socket.io/socket.io.js"></script>
   <script type="module" src="main.js"></script>
 </body>
