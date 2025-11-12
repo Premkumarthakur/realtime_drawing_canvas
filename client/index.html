@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DrawTogether - Real-time Collaborative Drawing</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="join-screen" class="screen active">
+    <div class="join-container">
+      <h1>DrawTogether</h1>
+      <p class="subtitle">Real-time collaborative drawing</p>
+      <form id="join-form">
+        <div class="input-group">
+          <label for="room-name">Room Name</label>
+          <input
+            type="text"
+            id="room-name"
+            placeholder="Enter room name"
+            required
+            autocomplete="off"
+          >
+        </div>
+        <div class="input-group">
+          <label for="username">Your Name</label>
+          <input
+            type="text"
+            id="username"
+            placeholder="Enter your name"
+            required
+            autocomplete="off"
+          >
+        </div>
+        <button type="submit" class="btn-primary">Join Room</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="canvas-screen" class="screen">
+    <div class="toolbar">
+      <div class="toolbar-section">
+        <div class="room-info">
+          <span class="room-label">Room:</span>
+          <span id="current-room" class="room-name"></span>
+        </div>
+      </div>
+
+      <div class="toolbar-section tools">
+        <button id="brush-tool" class="tool-btn active" title="Brush">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 19l7-7 3 3-7 7-3-3z"/>
+            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+            <path d="M2 2l7.586 7.586"/>
+          </svg>
+        </button>
+        <button id="eraser-tool" class="tool-btn" title="Eraser">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 20H7L3 16L11 8L19 16V20Z"/>
+            <path d="M11 8L16 3L21 8L16 13L11 8Z"/>
+          </svg>
+        </button>
+
+        <div class="divider"></div>
+
+        <div class="color-picker-wrapper">
+          <input type="color" id="color-picker" value="#2563eb" title="Color">
+          <div class="color-preview" id="color-preview"></div>
+        </div>
+
+        <div class="slider-wrapper">
+          <label for="stroke-width">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="4" y1="12" x2="20" y2="12"/>
+            </svg>
+          </label>
+          <input type="range" id="stroke-width" min="1" max="50" value="3" title="Brush Size">
+          <span id="stroke-width-value">3</span>
+        </div>
+      </div>
+
+      <div class="toolbar-section actions">
+        <button id="undo-btn" class="action-btn" title="Undo (Ctrl+Z)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7v6h6"/>
+            <path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
+          </svg>
+        </button>
+        <button id="redo-btn" class="action-btn" title="Redo (Ctrl+Y)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 7v6h-6"/>
+            <path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"/>
+          </svg>
+        </button>
+        <button id="clear-btn" class="action-btn" title="Clear Canvas">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+          </svg>
+        </button>
+        <button id="leave-btn" class="action-btn leave" title="Leave Room">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="sidebar">
+        <h3>Online Users</h3>
+        <div id="users-list" class="users-list"></div>
+      </div>
+
+      <div class="canvas-container">
+        <canvas id="drawing-canvas"></canvas>
+        <div id="cursors-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
