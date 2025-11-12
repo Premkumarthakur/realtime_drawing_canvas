@@ -1,31 +1,28 @@
-// Import the WebSocket and Canvas management modules
 import { WebSocketManager } from './websocket.js';
 import { CanvasManager } from './canvas.js';
 
 /**
- * 🎨 DrawingApp
- * This class controls the entire front-end flow:
- * - Handles room joining
- * - Manages users and cursors
- * - Connects CanvasManager with WebSocketManager
- * - Handles tool and color selection
- * - Listens for WebSocket events and updates the UI in real time
+ * DrawingApp class
+ * ----------------
+ * This is the main controller that connects:
+ * - WebSocketManager (real-time communication)
+ * - CanvasManager (drawing logic)
+ * - The DOM/UI (toolbar, users, cursors, etc.)
  */
 class DrawingApp {
   constructor() {
-    this.wsManager = new WebSocketManager(); // Handles server connection
-    this.canvasManager = null;               // Will manage canvas drawing once room is joined
+    this.wsManager = new WebSocketManager(); // Manages server connection
+    this.canvasManager = null;               // Handles all canvas operations
     this.currentUserId = null;               // Stores current user's unique ID
-    this.users = new Map();                  // Active users list
-    this.cursors = new Map();                // Cursor markers for remote users
+    this.users = new Map();                  // Active users in the room
+    this.cursors = new Map();                // Tracks remote users' cursors
 
     this.initializeElements();
     this.attachEventListeners();
   }
 
-  /** 
-   * 🧩 Grabs all important DOM elements 
-   * and stores them as properties for easy access.
+  /**
+   * Selects and stores references to all required DOM elements
    */
   initializeElements() {
     this.joinScreen = document.getElementById('join-screen');
@@ -54,11 +51,10 @@ class DrawingApp {
   }
 
   /**
-   * 🖱️ Sets up event listeners for form submission,
-   * toolbar actions, shortcuts, and color/size changes.
+   * Attaches all event listeners for UI elements and keyboard shortcuts
    */
   attachEventListeners() {
-    // Handle "Join Room" form submission
+    // Handle room join form
     this.joinForm.addEventListener('submit', (e) => {
       e.preventDefault();
       this.joinRoom();
@@ -68,19 +64,19 @@ class DrawingApp {
     this.brushBtn.addEventListener('click', () => this.selectTool('brush'));
     this.eraserBtn.addEventListener('click', () => this.selectTool('eraser'));
 
-    // Color picker update
+    // Color picker updates
     this.colorPicker.addEventListener('input', (e) => {
       this.colorPreview.style.background = e.target.value;
       if (this.canvasManager) this.canvasManager.setColor(e.target.value);
     });
 
-    // Stroke width slider
+    // Stroke width slider updates
     this.strokeWidthInput.addEventListener('input', (e) => {
       this.strokeWidthValue.textContent = e.target.value;
       if (this.canvasManager) this.canvasManager.setStrokeWidth(parseInt(e.target.value));
     });
 
-    // Undo/Redo/Clear button actions
+    // Undo/Redo/Clear buttons
     this.undoBtn.addEventListener('click', () => this.canvasManager?.undo());
     this.redoBtn.addEventListener('click', () => this.canvasManager?.redo());
 
@@ -93,7 +89,7 @@ class DrawingApp {
     // Leave the room
     this.leaveBtn.addEventListener('click', () => this.leaveRoom());
 
-    // Keyboard shortcuts (Ctrl+Z / Ctrl+Y)
+    // Keyboard shortcuts for undo/redo
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
@@ -104,28 +100,28 @@ class DrawingApp {
       }
     });
 
-    // Set the initial color preview
+    // Set default color preview
     this.colorPreview.style.background = this.colorPicker.value;
   }
 
   /**
-   * 🚪 Called when the user clicks "Join Room"
-   * Connects to the WebSocket server and initializes the drawing environment.
+   * Handles joining a drawing room and initializing the drawing environment
    */
   joinRoom() {
     const roomName = this.roomNameInput.value.trim();
     const username = this.usernameInput.value.trim();
     if (!roomName || !username) return;
 
+    // Connect to WebSocket server
     this.wsManager.connect();
     this.wsManager.joinRoom(roomName, username);
 
-    // When server confirms user has joined
+    // When the server confirms the user has joined
     this.wsManager.on('room-joined', (data) => {
       this.currentUserId = data.userId;
       this.currentRoomSpan.textContent = roomName;
 
-      // Switch screens
+      // Switch UI to the canvas screen
       this.joinScreen.classList.remove('active');
       this.canvasScreen.classList.add('active');
 
@@ -134,23 +130,22 @@ class DrawingApp {
       this.canvasManager.setColor(this.colorPicker.value);
       this.canvasManager.setStrokeWidth(parseInt(this.strokeWidthInput.value));
 
-      // If server provides previous drawing data, load it
+      // Load existing canvas state if available
       if (data.drawingState) {
         this.canvasManager.loadDrawingState(data.drawingState);
       }
 
-      // Update user list and setup live event handlers
+      // Update user list and setup WebSocket listeners
       this.updateUsersList(data.users);
       this.setupSocketListeners();
     });
   }
 
   /**
-   * 🔄 Sets up event listeners for all WebSocket events
-   * to sync drawing, users, cursors, and actions in real-time.
+   * Sets up WebSocket event listeners to handle real-time updates
    */
   setupSocketListeners() {
-    // When a new user joins the room
+    // When a new user joins
     this.wsManager.on('user-joined', (user) => {
       this.users.set(user.id, user);
       this.updateUsersList(Array.from(this.users.values()));
@@ -163,29 +158,29 @@ class DrawingApp {
       this.updateUsersList(Array.from(this.users.values()));
     });
 
-    // Full user list update
+    // Receive updated user list
     this.wsManager.on('users-update', (users) => {
       this.updateUsersList(users);
     });
 
-    // Receive and render remote drawing
+    // Handle drawing from other users
     this.wsManager.on('draw', (stroke) => {
       this.canvasManager.handleRemoteDraw(stroke);
     });
 
-    // Remote cursor movement
+    // Handle cursor movement from other users
     this.wsManager.on('cursor-update', (data) => {
       this.updateCursor(data.userId, data.x, data.y);
     });
 
-    // Undo/Redo/Clear actions from other users
+    // Handle undo/redo/clear from other users
     this.wsManager.on('undo', (data) => this.canvasManager.handleRemoteUndo(data));
     this.wsManager.on('redo', (data) => this.canvasManager.handleRemoteRedo(data));
     this.wsManager.on('clear-canvas', () => this.canvasManager.clear());
   }
 
   /**
-   * 👥 Updates the list of online users shown in sidebar.
+   * Updates the sidebar list of online users
    */
   updateUsersList(users) {
     users.forEach(user => this.users.set(user.id, user));
@@ -203,8 +198,7 @@ class DrawingApp {
   }
 
   /**
-   * 🖱️ Displays and moves other users’ cursors on your screen
-   * so you can see where they are drawing in real-time.
+   * Updates or creates a visual cursor for a remote user
    */
   updateCursor(userId, x, y) {
     const user = this.users.get(userId);
@@ -212,7 +206,7 @@ class DrawingApp {
 
     let cursor = this.cursors.get(userId);
 
-    // Create new cursor element if not already visible
+    // Create cursor if it doesn't exist
     if (!cursor) {
       cursor = document.createElement('div');
       cursor.className = 'cursor';
@@ -224,7 +218,7 @@ class DrawingApp {
       this.cursors.set(userId, cursor);
     }
 
-    // Position cursor correctly on the canvas
+    // Calculate cursor position relative to canvas
     const canvasRect = this.canvas.getBoundingClientRect();
     const containerRect = this.cursorsContainer.getBoundingClientRect();
 
@@ -233,7 +227,7 @@ class DrawingApp {
   }
 
   /**
-   * 🧹 Removes cursor when user disconnects.
+   * Removes the cursor of a disconnected user
    */
   removeCursor(userId) {
     const cursor = this.cursors.get(userId);
@@ -244,7 +238,7 @@ class DrawingApp {
   }
 
   /**
-   * 🧰 Switch between brush and eraser.
+   * Handles tool selection (brush or eraser)
    */
   selectTool(tool) {
     if (tool === 'brush') {
@@ -261,17 +255,17 @@ class DrawingApp {
   }
 
   /**
-   * 🚪 Leaves the current room and resets UI back to join screen.
+   * Leaves the current room and resets the UI to the join screen
    */
   leaveRoom() {
     if (confirm('Leave the room? Your drawing will be saved for other users.')) {
       this.wsManager.disconnect();
 
-      // Switch back to the join screen
+      // Reset screens
       this.canvasScreen.classList.remove('active');
       this.joinScreen.classList.add('active');
 
-      // Reset local state
+      // Reset all local state
       this.users.clear();
       this.cursors.forEach(cursor => cursor.remove());
       this.cursors.clear();
@@ -282,7 +276,9 @@ class DrawingApp {
   }
 }
 
-// ✅ Initialize the app when page finishes loading
+/**
+ * Initialize the DrawingApp once the page finishes loading
+ */
 document.addEventListener('DOMContentLoaded', () => {
   new DrawingApp();
 });
