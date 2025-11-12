@@ -5,7 +5,7 @@ export class WebSocketManager {
   }
 
   connect() {
-    this.socket = io('http://localhost:3000');
+    this.socket = io('https://realtime-drawing-canvas-backend.onrender.com');
     return this.socket;
   }
 
